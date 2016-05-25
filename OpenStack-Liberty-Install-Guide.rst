@@ -47,9 +47,9 @@ VM設定確認（ホストマシン上）::
 
  以下設定を/root/.bashrc等に追加
  
- # export http_proxy=<proxy-server:port>
- # export https_proxy=<proxy-server:port>
- # export no_proxy=localhost,127.0.0.1,10.0.0.108,10.0.0.200,10.0.0.201,10.0.0.202
+ export http_proxy=<proxy-server:port>
+ export https_proxy=<proxy-server:port>
+ export no_proxy=localhost,127.0.0.1,10.0.0.108,10.0.0.200,10.0.0.201,10.0.0.202
 
 SELINUX無効化::
 
@@ -85,4 +85,17 @@ packstackインストール::
 
 packstack設定ファイル作成::
 
- packstack --gen-answer=param.txt
+ # packstack --gen-answer=param.txt
+
+packstack設定ファイル修正::
+
+ 不要なサービスのインストールを無効化
+ # sed -i 's/CONFIG_NAGIOS_INSTALL=.*/CONFIG_NAGIOS_INSTALL=n/' param.txt
+ # sed -i 's/CONFIG_SWIFT_INSTALL=.*/CONFIG_SWIFT_INSTALL=n/' param.txt
+ # sed -i 's/CONFIG_CEILOMETER_INSTALL=.*/CONFIG_CEILOMETER_INSTALL=n/' param.txt
+
+ All in oneを想定した設定になっているため
+ network node, compute nodeのipアドレスを設定
+ # sed -i 's/CONFIG_NETWORK_HOSTS=.*/CONFIG_NETWORK_HOSTS=10.0.0.201/' param.txt
+ # sed -i 's/CONFIG_COMPUTE_HOSTS=.*/CONFIG_COMPUTE_HOSTS=10.0.0.202/' param.txt
+
