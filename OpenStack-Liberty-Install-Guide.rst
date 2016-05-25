@@ -21,7 +21,7 @@ CentOS7.2       CentOS7.2    CentOS7.2
 0.前提条件
 --------
 
-VM上で構築するため以下の通り
+VM上で構築するため
 Nested KVMが有効であることを確認
 
 
@@ -41,7 +41,7 @@ VM設定確認（ホストマシン上）::
 1.事前準備
 --------
 
-すべてのVM上で以下の作業を実施の上、再起動
+すべてのVM上で以下の作業を実施
 
 プロキシ設定（必要であれば）::
 
@@ -62,13 +62,14 @@ SELINUX無効化::
  # systemctl disable NetworkManager
  # systemctl enable network
 
-リポジトリ設定用RPMインストール::
+リポジトリ用RPMインストール::
 
  # yum install -y https://repos.fedorapeople.org/repos/openstack/openstack-liberty/rdo-release-liberty-3.noarch.rpm
 
-パッケージ最新化::
+パッケージ最新化および再起動::
 
  # yum -y update
+ # reboot
 
 2.PackStackインストール＆設定
 --------
@@ -157,5 +158,5 @@ virt-type設定::
  これをkvmに修正
  compute node上で実施
 
- #  sed -i 's/^virt_type=.*/virt_type=kvm/' /etc/nova/nova.conf
+ # sed -i 's/^virt_type=.*/virt_type=kvm/' /etc/nova/nova.conf
  # openstack-service restart nova
