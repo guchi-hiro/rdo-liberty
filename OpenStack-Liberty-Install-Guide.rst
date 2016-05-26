@@ -8,15 +8,16 @@ RDO(packstack)を利用してOpenStack環境を自動ビルドするためのガ
 構築環境
 ========
 
-以下３台構成
+以下4台構成
 今回はVMで構築
+web serverはproxy環境下でのみ必要
 
-=============== ============ ============
-controller node network node compute node
-=============== ============ ============
-10.0.0.200      10.0.0.201   10.0.0.202 
-CentOS7.2       CentOS7.2    CentOS7.2
-=============== ============ ============
+=============== ============ ============ ===========
+controller node network node compute node web server
+=============== ============ ============ ===========
+10.0.0.200      10.0.0.201   10.0.0.202   10.0.0.108
+CentOS7.2       CentOS7.2    CentOS7.2    CentOS7.2
+=============== ============ ============ ===========
 
 0.前提条件
 --------
@@ -41,7 +42,7 @@ VM設定確認（ホストマシン上）::
 1.事前準備
 --------
 
-すべてのVM上で以下の作業を実施
+web server以外のすべてのVM上で以下の作業を実施
 
 プロキシ設定（必要であれば）::
 
@@ -71,7 +72,20 @@ SELINUX無効化::
  # yum -y update
  # reboot
 
-2.PackStackインストール＆設定
+2.事前準備(web server)
+------------
+
+web serverにhttpdをインストールし
+適当な場所にglanceに登録するimageを格納::
+
+ $ ls -l /var/www/html/ubuntu.img .
+ -rw-r--r--. 1 root   root   1173094400  5月 23 11:16 /var/www/html/ubuntu.img
+
+とりあえず上記の通り、DocumentRootに格納
+packstack設定ファイルにて、上記イメージへのpathを設定する
+
+
+3.PackStackインストール＆設定
 --------
 
 controller nodeのみでの作業
@@ -102,7 +116,11 @@ packstack設定ファイル修正::
  # sed -i 's/CONFIG_NETWORK_HOSTS=.*/CONFIG_NETWORK_HOSTS=10.0.0.201/' param.txt
  # sed -i 's/CONFIG_COMPUTE_HOSTS=.*/CONFIG_COMPUTE_HOSTS=10.0.0.202/' param.txt
 
-3.PackStack実行＆事後設定
+ 登録するimageのpathを設定する
+ 
+ # sed -i 's/CONFIG_PROVISION_IMAGE_URL=.*/CONFIG_PROVISION_IMAGE_URL=http:\/\/10.0.0.108\/ubuntu.img/' param.txt
+
+4.PackStack実行＆事後設定
 --------
 
 controller nodeでpackstack実行::
@@ -152,6 +170,8 @@ controller nodeでpackstack実行::
  +----+------+--------+------------+-------------+----------+
  +----+------+--------+------------+-------------+----------+
 
+compute node上でvirt-typeの設定を行う
+
 virt-type設定::
 
  VM上でpackstackを実行すると自動でvirt_type=qemuとなってしまうので
@@ -160,3 +180,9 @@ virt-type設定::
 
  # sed -i 's/^virt_type=.*/virt_type=kvm/' /etc/nova/nova.conf
  # openstack-service restart nova
+
+network node上でbr-exの設定を行う
+packstack構築完了時点ではbr-exはどのnicにもアタッチされていないため
+手動で行う必要がある
+
+br-ex設定::
