@@ -182,7 +182,40 @@ virt-type設定::
  # openstack-service restart nova
 
 network node上でbr-exの設定を行う
+
 packstack構築完了時点ではbr-exはどのnicにもアタッチされていないため
 手動で行う必要がある
 
 br-ex設定::
+
+ # cat <<EOF | tee /etc/sysconfig/network-scripts/ifcfg-br-ex
+ DEVICE=br-ex
+ DEVICETYPE=ovs
+ TYPE=OVSBridge
+ BOOTPROTO=static
+ IPADDR=10.0.0.201
+ NETMASK=255.255.255.0
+ GATEWAY=10.0.0.1
+ ONBOOT=yes
+ EOF
+
+eth0設定::
+
+ # cat <<EOF | tee /etc/sysconfig/network-scripts/ifcfg-eth0
+ DEFROUTE=yes
+ PEERDNS=yes
+ PEERROUTES=yes
+ IPV4_FAILURE_FATAL=no
+ NAME=eth0
+ DEVICE=eth0
+ ONBOOT=yes
+ NM_CONTROLLED=yes
+ TYPE=OVSPort
+ OVS_BRIDGE=br-ex
+ EOF
+
+br-ex アタッチ::
+
+ アタッチすると疎通が切れるのでそのまま再起動させる
+
+ # ovs-vsctl add-port br-ex eth0 && sleep 5 && reboot
